@@ -17,6 +17,9 @@ def normalize_business_address(address):
     if address is None:
         return ""
 
+    if regex.match(r"^\s*nan\s*$", str(address), regex.IGNORECASE):
+        return ""
+
     address = str(address).lower().strip()
 
     # Preserve Unicode letters, combining marks, numbers, and whitespace.
