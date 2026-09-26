@@ -20,3 +20,4 @@ def test_address_normalization():
 
     assert normalize_business_address("   ") == ""
     assert normalize_business_address(None) == ""
+    assert normalize_business_address(float("nan")) == ""
