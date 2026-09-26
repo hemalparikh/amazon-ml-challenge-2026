@@ -1,7 +1,7 @@
 import pandas as pd
 
-from preprocessing.name_normalizer import normalize_business_name
-from preprocessing.address_normalizer import normalize_business_address
+from src.preprocessing.name_normalizer import normalize_business_name
+from src.preprocessing.address_normalizer import normalize_business_address
 
 
 def preprocess_data(df):
