@@ -18,3 +18,4 @@ output/*.tsv
 # OS files
 .DS_Store
 Thumbs.db
+validate_submission.py
