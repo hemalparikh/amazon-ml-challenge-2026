@@ -17,22 +17,22 @@ from features import create_features
 # CONFIGURATION
 # ============================================================
 
-TRAIN_FILE = "data/sample_candidates.csv"
+TRAINING_FILE = "data/sample_candidates.csv"
 MODEL_DIR = "models"
-MODEL_FILE = os.path.join(MODEL_DIR, "matching_model.pkl")
+MODEL_PATH = os.path.join(MODEL_DIR, "matching_model.pkl")
 
 DEFAULT_THRESHOLD = 0.50
 
 
 # ============================================================
-# LOAD DATA
+# LOAD TRAINING DATA
 # ============================================================
 
-print("=" * 70)
+print("\n" + "=" * 70)
 print("LOADING TRAINING DATA")
 print("=" * 70)
 
-df = pd.read_csv(TRAIN_FILE)
+df = pd.read_csv(TRAINING_FILE)
 
 print(f"Training rows: {len(df)}")
 print(f"Columns: {list(df.columns)}")
@@ -48,7 +48,7 @@ print("=" * 70)
 
 df = create_features(df)
 
-print(f"Total columns after feature creation: {len(df.columns)}")
+print(f"Total columns after feature engineering: {len(df.columns)}")
 
 
 # ============================================================
@@ -104,7 +104,8 @@ features = [
 # ============================================================
 
 missing_features = [
-    feature for feature in features
+    feature
+    for feature in features
     if feature not in df.columns
 ]
 
@@ -138,19 +139,22 @@ print("=" * 70)
 
 model = LogisticRegression(
     max_iter=1000,
-    random_state=42
+    class_weight="balanced",
+    random_state=42,
 )
 
 model.fit(X, y)
 
 
 # ============================================================
-# PREDICT PROBABILITIES
+# PREDICTIONS
 # ============================================================
 
 probabilities = model.predict_proba(X)[:, 1]
 
-df["match_probability"] = probabilities
+predictions = (
+    probabilities >= DEFAULT_THRESHOLD
+).astype(int)
 
 
 # ============================================================
@@ -176,30 +180,30 @@ thresholds = [
 
 for threshold in thresholds:
 
-    predictions = (
+    threshold_predictions = (
         probabilities >= threshold
     ).astype(int)
 
     precision = precision_score(
         y,
-        predictions,
-        zero_division=0
+        threshold_predictions,
+        zero_division=0,
     )
 
     recall = recall_score(
         y,
-        predictions,
-        zero_division=0
+        threshold_predictions,
+        zero_division=0,
     )
 
     f05 = fbeta_score(
         y,
-        predictions,
+        threshold_predictions,
         beta=0.5,
-        zero_division=0
+        zero_division=0,
     )
 
-    predicted_matches = predictions.sum()
+    predicted_matches = threshold_predictions.sum()
 
     print(
         f"Threshold={threshold:.2f} | "
@@ -211,38 +215,32 @@ for threshold in thresholds:
 
 
 # ============================================================
-# DEFAULT THRESHOLD RESULTS
+# DEFAULT THRESHOLD METRICS
 # ============================================================
-
-predicted_match = (
-    probabilities >= DEFAULT_THRESHOLD
-).astype(int)
 
 accuracy = accuracy_score(
     y,
-    predicted_match
+    predictions,
 )
 
 precision = precision_score(
     y,
-    predicted_match,
-    zero_division=0
+    predictions,
+    zero_division=0,
 )
 
 recall = recall_score(
     y,
-    predicted_match,
-    zero_division=0
+    predictions,
+    zero_division=0,
 )
 
 f05 = fbeta_score(
     y,
-    predicted_match,
+    predictions,
     beta=0.5,
-    zero_division=0
+    zero_division=0,
 )
-
-df["predicted_match"] = predicted_match
 
 
 print("\n" + "=" * 70)
@@ -257,49 +255,52 @@ print(f"F0.5:      {f05:.3f}")
 
 
 # ============================================================
-# SHOW PREDICTIONS
+# DISPLAY PREDICTIONS
 # ============================================================
+
+df["match_probability"] = probabilities
+df["predicted_match"] = predictions
+
 
 print("\nPredictions:")
 
-prediction_columns = [
-    "source1_name",
-    "candidate_name",
-    "match",
-    "match_probability",
-    "predicted_match",
-]
-
 print(
-    df[prediction_columns]
-    .to_string(index=False)
+    df[
+        [
+            "source1_name",
+            "candidate_name",
+            "match",
+            "match_probability",
+            "predicted_match",
+        ]
+    ].to_string(index=False)
 )
 
 
 # ============================================================
-# SHOW MODEL COEFFICIENTS
+# MODEL COEFFICIENTS
 # ============================================================
 
 print("\n" + "=" * 70)
-print("MODEL FEATURE IMPORTANCE")
+print("FEATURE IMPORTANCE")
 print("=" * 70)
 
-coefficients = pd.DataFrame({
+importance = pd.DataFrame({
     "feature": features,
     "coefficient": model.coef_[0],
 })
 
-coefficients["absolute_coefficient"] = (
-    coefficients["coefficient"].abs()
+importance["absolute_coefficient"] = (
+    importance["coefficient"].abs()
 )
 
-coefficients = coefficients.sort_values(
+importance = importance.sort_values(
     "absolute_coefficient",
-    ascending=False
+    ascending=False,
 )
 
 print(
-    coefficients[
+    importance[
         ["feature", "coefficient"]
     ].to_string(index=False)
 )
@@ -311,7 +312,7 @@ print(
 
 os.makedirs(
     MODEL_DIR,
-    exist_ok=True
+    exist_ok=True,
 )
 
 joblib.dump(
@@ -320,12 +321,11 @@ joblib.dump(
         "features": features,
         "threshold": DEFAULT_THRESHOLD,
     },
-    MODEL_FILE
+    MODEL_PATH,
 )
-
 
 print("\n" + "=" * 70)
 print("MODEL SAVED")
 print("=" * 70)
 
-print(f"Model saved successfully to: {MODEL_FILE}")
+print(f"Model saved successfully to: {MODEL_PATH}")
