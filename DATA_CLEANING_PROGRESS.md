@@ -32,6 +32,8 @@
 - Preserve original address order.
 - Do not automatically spell-correct.
 - Do not automatically reorder address components.
+- Missing address values are converted to an empty string instead of the text "nan".
+- In the first 10,000 Source 2 records, normalized addresses showed very few actual duplicates, so duplicate addresses should not be assumed to identify the same business.
 
 ## Rules Not Yet Applied
 
