@@ -14,6 +14,9 @@ def test_name_normalization():
 
 
 def test_address_normalization():
-    assert normalize_business_address("1795 Westchester Drive, High Point, NC") == "1795 westchester drive high point nc"
+    assert normalize_business_address(
+        "1795 Westchester Drive, High Point, NC"
+    ) == "1795 westchester drive high point nc"
+
     assert normalize_business_address("   ") == ""
     assert normalize_business_address(None) == ""
