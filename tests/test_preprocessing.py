@@ -52,3 +52,32 @@ def test_additional_address_abbreviations():
     assert normalize_business_address("123 Main Pkwy, Dallas, TX") == "123 main parkway dallas tx"
     assert normalize_business_address("45 Oak Ct, Boston, MA") == "45 oak court boston ma"
     assert normalize_business_address("78 Market Pl, Mumbai, India") == "78 market place mumbai india"
+
+def test_legal_business_name_normalization():
+    assert normalize_business_name(
+        "Zander Blue Company"
+    ) == "zander blue co"
+
+    assert normalize_business_name(
+        "Vadodara Industries Pvt Limited"
+    ) == "vadodara industries pvt ltd"
+
+    assert normalize_business_name(
+        "Libra Service Limited"
+    ) == "libra service ltd"
+
+    assert normalize_business_name(
+        "Precision Staffing Corporation"
+    ) == "precision staffing corp"
+
+    assert normalize_business_name(
+        "Red Ventures Private Limited"
+    ) == "red ventures pvt ltd"
+
+    assert normalize_business_name(
+        "Million Marketing Pvt. Limited"
+    ) == "million marketing pvt ltd"
+
+    assert normalize_business_name(
+        "Olszewski Holding Company LLC LLC"
+    ) == "olszewski holding co llc llc"
