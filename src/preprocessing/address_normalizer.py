@@ -1,4 +1,4 @@
-import regex
+﻿import regex
 
 
 def normalize_business_address(address):
@@ -35,6 +35,9 @@ def normalize_business_address(address):
         r"\bblvd\b": "boulevard",
         r"\bhwy\b": "highway",
         r"\bln\b": "lane",
+        r"\bpkwy\b": "parkway",
+        r"\bct\b": "court",
+        r"\bpl\b": "place",
     }
 
     for pattern, replacement in abbreviation_rules.items():
@@ -44,3 +47,4 @@ def normalize_business_address(address):
     address = regex.sub(r"\s+", " ", address).strip()
 
     return address
+

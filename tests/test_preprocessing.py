@@ -47,3 +47,8 @@ def test_address_normalization():
 
     assert normalize_business_address(float("nan")) == ""
 
+
+def test_additional_address_abbreviations():
+    assert normalize_business_address("123 Main Pkwy, Dallas, TX") == "123 main parkway dallas tx"
+    assert normalize_business_address("45 Oak Ct, Boston, MA") == "45 oak court boston ma"
+    assert normalize_business_address("78 Market Pl, Mumbai, India") == "78 market place mumbai india"
