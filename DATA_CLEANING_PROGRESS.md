@@ -1,4 +1,4 @@
-# Data Cleaning & Normalization Progress
+﻿# Data Cleaning & Normalization Progress
 
 ## Completed
 
@@ -35,13 +35,25 @@
 - Missing address values are converted to an empty string instead of the text "nan".
 - In the first 10,000 Source 2 records, normalized addresses showed very few actual duplicates, so duplicate addresses should not be assumed to identify the same business.
 
+### Address abbreviations currently standardized
+- Rd → Road
+- St → Street
+- Ave → Avenue
+- Dr → Drive
+- Blvd → Boulevard
+- Hwy → Highway
+- Ln → Lane
+- Pkwy → Parkway
+- Ct → Court
+- Pl → Place
+
 ## Rules Not Yet Applied
 
 - Legal suffix removal or standardization.
-- Address abbreviation expansion.
 - Automatic spelling correction.
 - Website/domain removal.
 - Business-name word removal.
 - Address component reordering.
 
 These rules will be tested against the training data before implementation.
+
