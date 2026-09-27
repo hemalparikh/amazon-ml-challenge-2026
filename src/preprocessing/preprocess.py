@@ -15,7 +15,7 @@ def preprocess_data(df):
     df = df.copy()
 
     df["business_name_normalized"] = df["business_name"].map(
-        normalize_business_name
+        lambda value: "" if pd.isna(value) else normalize_business_name(value)
     )
 
     df["business_address_normalized"] = df["business_address"].map(
