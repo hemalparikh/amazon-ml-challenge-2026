@@ -1,0 +1,25 @@
+Normalized Blocking Baseline
+============================
+
+Dataset:
+- Train Source 1: first 10,000 records
+- Candidate sources: full Train Source 2 + Source 3
+- Ground truth matched by source1_entity_id
+
+Blocking:
+- Normalized business name
+- Normalized business address
+- Country
+- Maximum blocking-key frequency: 100
+
+Results:
+- Total true links: 34,752
+- Captured true links: 14,806
+- Blocking recall: 42.6%
+- Average candidates: 25.07
+- Median candidates: 1
+- Maximum candidates: 324
+
+Conclusion:
+This is a valid baseline but insufficient for final submission.
+A large number of true matches are lost during candidate generation.

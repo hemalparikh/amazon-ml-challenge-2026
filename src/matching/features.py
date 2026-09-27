@@ -133,12 +133,6 @@ def tokens(text):
 def important_tokens(text):
     """
     Return business-name tokens excluding common legal suffixes.
-
-    This helps compare:
-        ABC Private Limited
-        ABC Pvt Ltd
-
-    based on the important business words.
     """
 
     legal_tokens = {
@@ -161,10 +155,6 @@ def important_tokens(text):
 def numeric_tokens(text):
     """
     Extract numeric sequences.
-
-    Example:
-        '12 MG Road 411001'
-        -> {'12', '411001'}
     """
 
     if not text:
@@ -177,13 +167,7 @@ def postal_tokens(text):
     """
     Extract possible postal/ZIP codes.
 
-    We intentionally keep this generic because the dataset can
-    contain multiple countries.
-
-    Examples:
-        India: 411001
-        US: 10001
-        France: 75001
+    Kept generic because the dataset contains multiple countries.
     """
 
     if not text:
@@ -191,7 +175,6 @@ def postal_tokens(text):
 
     numbers = numeric_tokens(text)
 
-    # Postal codes are generally 4-6 digit numeric sequences.
     return {
         number
         for number in numbers
@@ -202,8 +185,6 @@ def postal_tokens(text):
 def token_overlap(text1, text2):
     """
     Intersection divided by the smaller token set.
-
-    Returns a value between 0 and 1.
     """
 
     tokens1 = tokens(text1)
@@ -266,7 +247,7 @@ def create_features(df):
     """
     Create entity-matching features for candidate pairs.
 
-    Expected columns:
+    Expected raw columns:
 
         source1_name
         candidate_name
@@ -274,6 +255,16 @@ def create_features(df):
         candidate_address
         source1_country
         candidate_country
+
+    Optional normalized columns:
+
+        source1_name_normalized
+        candidate_name_normalized
+        source1_address_normalized
+        candidate_address_normalized
+
+    If normalized columns already exist, they are used directly.
+    Otherwise, fallback normalization is performed.
     """
 
     df = df.copy()
@@ -282,17 +273,20 @@ def create_features(df):
     # NAME NORMALIZATION
     # ========================================================
 
-    df["source1_name_normalized"] = (
-        df["source1_name"]
-        .fillna("")
-        .apply(normalize_business_name)
-    )
+    # Use project preprocessing output if already available.
+    if "source1_name_normalized" not in df.columns:
+        df["source1_name_normalized"] = (
+            df["source1_name"]
+            .fillna("")
+            .apply(normalize_business_name)
+        )
 
-    df["candidate_name_normalized"] = (
-        df["candidate_name"]
-        .fillna("")
-        .apply(normalize_business_name)
-    )
+    if "candidate_name_normalized" not in df.columns:
+        df["candidate_name_normalized"] = (
+            df["candidate_name"]
+            .fillna("")
+            .apply(normalize_business_name)
+        )
 
     # ========================================================
     # NAME FEATURES
@@ -334,8 +328,7 @@ def create_features(df):
     # First token match.
     df["name_first_token_match"] = (
         df["source1_name_normalized"].apply(first_token)
-        ==
-        df["candidate_name_normalized"].apply(first_token)
+        == df["candidate_name_normalized"].apply(first_token)
     ).astype(int)
 
     # Important-token overlap.
@@ -350,12 +343,20 @@ def create_features(df):
     # Similarity after ignoring legal suffixes.
     df["name_important_token_similarity"] = df.apply(
         lambda row: safe_token_set_ratio(
-            " ".join(sorted(
-                important_tokens(row["source1_name_normalized"])
-            )),
-            " ".join(sorted(
-                important_tokens(row["candidate_name_normalized"])
-            )),
+            " ".join(
+                sorted(
+                    important_tokens(
+                        row["source1_name_normalized"]
+                    )
+                )
+            ),
+            " ".join(
+                sorted(
+                    important_tokens(
+                        row["candidate_name_normalized"]
+                    )
+                )
+            ),
         ),
         axis=1,
     )
@@ -384,17 +385,20 @@ def create_features(df):
     # ADDRESS NORMALIZATION
     # ========================================================
 
-    df["source1_address_normalized"] = (
-        df["source1_address"]
-        .fillna("")
-        .apply(normalize_business_address)
-    )
+    # Use project preprocessing output if already available.
+    if "source1_address_normalized" not in df.columns:
+        df["source1_address_normalized"] = (
+            df["source1_address"]
+            .fillna("")
+            .apply(normalize_business_address)
+        )
 
-    df["candidate_address_normalized"] = (
-        df["candidate_address"]
-        .fillna("")
-        .apply(normalize_business_address)
-    )
+    if "candidate_address_normalized" not in df.columns:
+        df["candidate_address_normalized"] = (
+            df["candidate_address"]
+            .fillna("")
+            .apply(normalize_business_address)
+        )
 
     # ========================================================
     # ADDRESS FEATURES
@@ -403,8 +407,7 @@ def create_features(df):
     # Exact normalized address.
     df["address_exact_match"] = (
         df["source1_address_normalized"]
-        ==
-        df["candidate_address_normalized"]
+        == df["candidate_address_normalized"]
     ).astype(int)
 
     # Character-level similarity.
@@ -447,9 +450,13 @@ def create_features(df):
     df["address_number_match"] = df.apply(
         lambda row: int(
             bool(
-                numeric_tokens(row["source1_address_normalized"])
+                numeric_tokens(
+                    row["source1_address_normalized"]
+                )
                 &
-                numeric_tokens(row["candidate_address_normalized"])
+                numeric_tokens(
+                    row["candidate_address_normalized"]
+                )
             )
         ),
         axis=1,
@@ -459,9 +466,13 @@ def create_features(df):
     df["address_postal_code_match"] = df.apply(
         lambda row: int(
             bool(
-                postal_tokens(row["source1_address_normalized"])
+                postal_tokens(
+                    row["source1_address_normalized"]
+                )
                 &
-                postal_tokens(row["candidate_address_normalized"])
+                postal_tokens(
+                    row["candidate_address_normalized"]
+                )
             )
         ),
         axis=1,
@@ -521,8 +532,7 @@ def create_features(df):
     # Exact country match.
     df["country_exact_match"] = (
         df["source1_country_normalized"]
-        ==
-        df["candidate_country_normalized"]
+        == df["candidate_country_normalized"]
     ).astype(int)
 
     # Country missing indicators.
